@@ -1,130 +1,70 @@
 #include <gtest/gtest.h>
-#include <vector>
+#include <memory>
 #include <cmath>
+#include "../include/Square.h"
 #include "../include/Rectangle.h"
 #include "../include/Trapezoid.h"
-#include "../include/Rhombus.h"
+#include "../include/Array.h"
 
 bool doubleEquals(double a, double b, double epsilon = 1e-6) {
     return std::fabs(a - b) < epsilon;
 }
 
-TEST(RectangleTest, BasicOperations) {
-    std::vector<std::pair<double, double>> points = {{0,0}, {4,0}, {4,3}, {0,3}};
-    Rectangle rectangle(points);
-    
-    auto center = rectangle.calculateGeometricCenter();
-    EXPECT_TRUE(doubleEquals(center.first, 2.0));
-    EXPECT_TRUE(doubleEquals(center.second, 1.5));
-    EXPECT_TRUE(doubleEquals(static_cast<double>(rectangle), 12.0));
+TEST(SquareTest, AreaCalculation) {
+    Square<double> square(5.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(square), 25.0);
 }
 
-TEST(RectangleTest, Equality) {
-    std::vector<std::pair<double, double>> points1 = {{0,0}, {4,0}, {4,3}, {0,3}};
-    std::vector<std::pair<double, double>> points2 = {{0,0}, {4,0}, {4,3}, {0,3}};
-    std::vector<std::pair<double, double>> points3 = {{0,0}, {5,0}, {5,3}, {0,3}};
-    
-    Rectangle rect1(points1);
-    Rectangle rect2(points2);
-    Rectangle rect3(points3);
-    
-    EXPECT_TRUE(rect1 == rect2);
-    EXPECT_FALSE(rect1 == rect3);
+TEST(RectangleTest, AreaCalculation) {
+    Rectangle<double> rectangle(4.0, 6.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(rectangle), 24.0);
 }
 
 TEST(TrapezoidTest, AreaCalculation) {
-    std::vector<std::pair<double, double>> points = {{0,0}, {4,0}, {3,2}, {1,2}};
-    Trapezoid trapezoid(points);
-    
-    EXPECT_TRUE(doubleEquals(static_cast<double>(trapezoid), 6.0));
+    Trapezoid<double> trapezoid(3.0, 6.0, 4.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(trapezoid), 18.0);
 }
 
-TEST(TrapezoidTest, GeometricCenter) {
-    std::vector<std::pair<double, double>> points = {{0,0}, {4,0}, {3,2}, {1,2}};
-    Trapezoid trapezoid(points);
-    
-    auto center = trapezoid.calculateGeometricCenter();
-    EXPECT_TRUE(doubleEquals(center.first, 2.0));
-    EXPECT_TRUE(doubleEquals(center.second, 1.0));
+TEST(SquareTest, GeometricCenter) {
+    Square<double> square(5.0);
+    auto center = square.calculateGeometricCenter();
+    EXPECT_DOUBLE_EQ(center.getX(), 0.0);
+    EXPECT_DOUBLE_EQ(center.getY(), 0.0);
 }
 
-TEST(RhombusTest, AreaCalculation) {
-    std::vector<std::pair<double, double>> points = {{0,0}, {2,2}, {4,0}, {2,-2}};
-    Rhombus rhombus(points);
+TEST(ArrayTest, BasicOperations) {
+    Array<std::shared_ptr<Figure<double>>> figures;
     
-    EXPECT_TRUE(doubleEquals(static_cast<double>(rhombus), 8.0));
+    figures.push_back(std::make_shared<Square<double>>(5.0));
+    figures.push_back(std::make_shared<Rectangle<double>>(4.0, 6.0));
+    
+    EXPECT_EQ(figures.size(), 2);
+    EXPECT_DOUBLE_EQ(static_cast<double>(*figures[0]), 25.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(*figures[1]), 24.0);
 }
 
-TEST(RhombusTest, GeometricCenter) {
-    std::vector<std::pair<double, double>> points = {{1,0}, {2,2}, {3,0}, {2,-2}};
-    Rhombus rhombus(points);
+TEST(ArrayTest, RemoveElement) {
+    Array<std::shared_ptr<Figure<double>>> figures;
     
-    auto center = rhombus.calculateGeometricCenter();
-    EXPECT_TRUE(doubleEquals(center.first, 2.0));
-    EXPECT_TRUE(doubleEquals(center.second, 0.0));
+    figures.push_back(std::make_shared<Square<double>>(5.0));
+    figures.push_back(std::make_shared<Rectangle<double>>(4.0, 6.0));
+    figures.push_back(std::make_shared<Trapezoid<double>>(3.0, 6.0, 4.0));
+    
+    EXPECT_EQ(figures.size(), 3);
+    figures.remove(1);
+    EXPECT_EQ(figures.size(), 2);
+    EXPECT_DOUBLE_EQ(static_cast<double>(*figures[0]), 25.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(*figures[1]), 18.0);
 }
 
-TEST(FigureTest, DifferentTypeComparison) {
-    std::vector<std::pair<double, double>> rectPoints = {{0,0}, {4,0}, {4,3}, {0,3}};
-    std::vector<std::pair<double, double>> trapPoints = {{0,0}, {4,0}, {3,2}, {1,2}};
+TEST(FigureTest, DifferentTypes) {
+    Square<int> squareInt(5);
+    Square<float> squareFloat(5.0f);
+    Square<double> squareDouble(5.0);
     
-    Rectangle rectangle(rectPoints);
-    Trapezoid trapezoid(trapPoints);
-    
-    EXPECT_FALSE(rectangle == trapezoid);
-    EXPECT_FALSE(trapezoid == rectangle);
-}
-
-TEST(FigureManagerTest, TotalArea) {
-    std::vector<Figure*> figures;
-    
-    Rectangle* rect = new Rectangle({{0,0}, {4,0}, {4,3}, {0,3}});
-    Trapezoid* trap = new Trapezoid({{0,0}, {4,0}, {3,2}, {1,2}});
-    Rhombus* rhombus = new Rhombus({{0,0}, {2,2}, {4,0}, {2,-2}});
-    
-    figures.push_back(rect);
-    figures.push_back(trap);
-    figures.push_back(rhombus);
-    
-    double totalArea = 0.0;
-    for (const auto& figure : figures) {
-        totalArea += static_cast<double>(*figure);
-    }
-    
-    EXPECT_TRUE(doubleEquals(totalArea, 26.0));
-    
-    for (auto figure : figures) {
-        delete figure;
-    }
-}
-
-TEST(FigureManagerTest, RemoveFromArray) {
-    std::vector<Figure*> figures;
-    
-    Rectangle* rect = new Rectangle({{0,0}, {4,0}, {4,3}, {0,3}});      
-    Trapezoid* trap = new Trapezoid({{0,0}, {4,0}, {3,2}, {1,2}});     
-    
-    figures.push_back(rect);
-    figures.push_back(trap);
-    
-    delete figures[0];
-    figures.erase(figures.begin());
-    
-    EXPECT_EQ(figures.size(), 1);
-    
-    for (auto figure : figures) {
-        delete figure;
-    }
-}
-
-TEST(RectangleTest, InputOutput) {
-    Rectangle rect1({{0,0}, {4,0}, {4,3}, {0,3}});
-    
-    std::ostringstream oss;
-    oss << rect1;
-    std::string output = oss.str();
-    
-    EXPECT_FALSE(output.empty());
+    EXPECT_DOUBLE_EQ(static_cast<double>(squareInt), 25.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(squareFloat), 25.0);
+    EXPECT_DOUBLE_EQ(static_cast<double>(squareDouble), 25.0);
 }
 
 int main(int argc, char **argv) {

@@ -1,24 +1,54 @@
+// Rectangle.h
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
 #include "Figure.h"
-#include <vector>
-#include <utility>
+#include <cmath>
+#include <iostream>
 
-class Rectangle : public Figure {
+template<Scalar T>
+class Rectangle : public Figure<T> {
 private:
-    std::vector<std::pair<double, double>> vertices;
+    T width, height;
 
 public:
-    Rectangle() = default;
-    Rectangle(const std::vector<std::pair<double, double>>& points);
+    Rectangle() : width(0), height(0) {}
+    Rectangle(T width, T height) : width(width), height(height) {
+        this->vertices.clear();
+        this->vertices.push_back(std::make_unique<Point<T>>(-width/2, -height/2));
+        this->vertices.push_back(std::make_unique<Point<T>>(width/2, -height/2));
+        this->vertices.push_back(std::make_unique<Point<T>>(width/2, height/2));
+        this->vertices.push_back(std::make_unique<Point<T>>(-width/2, height/2));
+    }
 
-    std::pair<double, double> calculateGeometricCenter() const override;
-    explicit operator double() const override;
-    bool operator==(const Figure& other) const override;
+    Point<T> calculateGeometricCenter() const override {
+        return Point<T>(0, 0);
+    }
 
-    void print(std::ostream& os) const override;
-    void read(std::istream& is) override;
+    explicit operator double() const override {
+        return static_cast<double>(width * height);
+    }
+
+    bool operator==(const Figure<T>& other) const override {
+        const Rectangle* otherRect = dynamic_cast<const Rectangle*>(&other);
+        if (!otherRect) return false;
+        return width == otherRect->width && height == otherRect->height;
+    }
+
+    void print(std::ostream& os) const override {
+        for (const auto& vertex : this->vertices) {
+            os << *vertex << " ";
+        }
+    }
+
+    void read(std::istream& is) override {
+        T w, h;
+        is >> w >> h;
+        *this = Rectangle(w, h);
+    }
+
+    T getWidth() const { return width; }
+    T getHeight() const { return height; }
 };
 
 #endif
