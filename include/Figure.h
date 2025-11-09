@@ -1,4 +1,3 @@
-// Figure.h
 #ifndef FIGURE_H
 #define FIGURE_H
 
